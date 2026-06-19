@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Numerics;
 using Raylib_cs;
+using Particles;
 using static Global;
 
 class Global // define global variables here
@@ -129,6 +130,7 @@ class Program
 
         // Player
         Player p = new(LoadTextureOutsideDirectory("assets/Player.png"), 7);
+        ParticleSystem playerParticles = new(15);
 
         // Crosshair
         Crosshair c = new(LoadTextureOutsideDirectory("assets/Crosshair.png"), 7);
@@ -149,11 +151,11 @@ class Program
             else if (Raylib.IsKeyDown(KeyboardKey.Right) || Raylib.IsKeyDown(KeyboardKey.D)) p.Angle += 0.02f;
 
             // Player accerlation
-            if (Raylib.IsKeyDown(KeyboardKey.Up) || Raylib.IsKeyDown(KeyboardKey.W)) p.Accerlation += 0.25f;
-            else if (Raylib.IsKeyDown(KeyboardKey.Down) || Raylib.IsKeyDown(KeyboardKey.S)) p.Accerlation -= 0.25f;
+            if (Raylib.IsKeyDown(KeyboardKey.Up) || Raylib.IsKeyDown(KeyboardKey.W)) {p.Accerlation += 0.25f;}
+            else if (Raylib.IsKeyDown(KeyboardKey.Down) || Raylib.IsKeyDown(KeyboardKey.S)) {p.Accerlation -= 0.25f;}
 
             // Cap accerlation
-            p.Accerlation = Math.Clamp(p.Accerlation, -1, 1);
+            p.Accerlation = Math.Clamp(p.Accerlation, 0, 1);
 
             // Cap Angle
             if (p.Angle > FULL_CIRCLE) p.Angle = 0;
@@ -194,8 +196,9 @@ class Program
             Raylib.ClearBackground(Color.White);
 
             // Drawing the player
+            playerParticles.UpdateParticleSmokeSquare(p.Position, p.Direction*-1, 15, dt, 65); 
             Raylib.DrawTexturePro(p.plane, p.Source, p.Dest, p.Origin, (p.Angle * TO_DEGREE) + 90, Color.White);
-
+            
             // Drawing the Crosshair
             Raylib.DrawTexturePro(c.CrossTex, c.Source, c.Dest, c.Origin, c.Angle, Color.White);
 
