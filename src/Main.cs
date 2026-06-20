@@ -2,7 +2,9 @@
 using System.Numerics;
 using Raylib_cs;
 using Particles;
+using GUIComponentSystem;
 using static Global;
+using static ImageFunctions;
 
 class Global // define global variables here
 {
@@ -15,6 +17,31 @@ class Global // define global variables here
     public static readonly Vector2 CENTER = new(WINW / 2, WINH / 2);
 }
 
+class ImageFunctions
+{
+    private static string combinedPath = "";
+    public static Texture2D LoadTextureOutsideDirectory(string path)
+    {
+        combinedPath = Path.Combine("..", path);
+        Texture2D loaded = Raylib.LoadTexture(combinedPath);
+        return loaded;
+    }
+    public static Rectangle GenerateSource(Texture2D texture)
+    {
+        Rectangle source = new(0,0,texture.Width,texture.Height);
+        return source;
+    }
+    public static Rectangle GenerateDest(Texture2D texture, int scale)
+    {
+        Rectangle dest = new(Vector2.Zero,texture.Width/scale,texture.Height/scale);
+        return dest;
+    }
+    public static Vector2 GenerateOrigin(Texture2D texture, int scale)
+    {
+        Vector2 origin = new(texture.Width / (scale * 2), texture.Height / (scale * 2));
+        return origin;
+    }
+}
 class Program
 {
     struct Player
@@ -43,7 +70,6 @@ class Program
             Origin = GenerateOrigin(this.plane, scale);
         }
     }
-
     public enum Diffuculty{ Easy, Medium, Hard }
     struct Enemy
     {
@@ -90,7 +116,6 @@ class Program
         }
 
     }
-
     struct Crosshair(Texture2D texture, int scale)
     {
         public Texture2D CrossTex = texture;
@@ -99,34 +124,15 @@ class Program
         public float Angle = 0;
         public int Factor = 1;
     }
-    private static string combinedPath = "";
-    public static Texture2D LoadTextureOutsideDirectory(string path)
-    {
-        combinedPath = Path.Combine("..", path);
-        Texture2D loaded = Raylib.LoadTexture(combinedPath);
-        return loaded;
-    }
-    public static Rectangle GenerateSource(Texture2D texture)
-    {
-        Rectangle source = new(0,0,texture.Width,texture.Height);
-        return source;
-    }
-    public static Rectangle GenerateDest(Texture2D texture, int scale)
-    {
-        Rectangle dest = new(Vector2.Zero,texture.Width/scale,texture.Height/scale);
-        return dest;
-    }
-    public static Vector2 GenerateOrigin(Texture2D texture, int scale)
-    {
-        Vector2 origin = new(texture.Width / (scale * 2), texture.Height / (scale * 2));
-        return origin;
-    }
     public static void Main()
     {
         // Initialization
         Raylib.InitWindow(WINW, WINH, "Basic Window");
         Raylib.SetTargetFPS(60);
         float dt;
+
+        // Level Variables
+        //Diffuculty levelDiffuculty = Diffuculty.Easy;
 
         // Player
         Player p = new(LoadTextureOutsideDirectory("assets/Player.png"), 7);
@@ -202,6 +208,7 @@ class Program
             // Drawing the Crosshair
             Raylib.DrawTexturePro(c.CrossTex, c.Source, c.Dest, c.Origin, c.Angle, Color.White);
 
+            
 
             Raylib.EndDrawing();
         }
