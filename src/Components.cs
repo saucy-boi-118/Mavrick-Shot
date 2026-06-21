@@ -4,22 +4,20 @@ using System.Threading.Channels;
 
 namespace GUIComponentSystem
 {
-    public delegate void ClickFunction(); // runs when the UI is clicked
     interface IComponentFunctions // Bases functions for all UI
     {
-        bool MouseClicked(ClickFunction clickFunction);
+        bool MouseClicked();
         bool MouseHovered();
         void DrawComponent(float thickness, bool makeWhite=false);
     }
     class Component(Rectangle bounds) : IComponentFunctions // uses the component functions
     {
         protected Rectangle Bounds = bounds; // where the 
-        public virtual bool MouseClicked(ClickFunction clickFunction)
+        public virtual bool MouseClicked()
         {
             // if the mouse is clicked and its hovered 
             if (Raylib.IsMouseButtonPressed(MouseButton.Left) && MouseHovered())
             {
-                clickFunction(); // call the click function
                 return true; // its clicked   
             }
             return false;
@@ -28,10 +26,8 @@ namespace GUIComponentSystem
         {
             if (Raylib.CheckCollisionPointRec(Raylib.GetMousePosition(), Bounds))
             {
-                Console.WriteLine("YEESSS");
                 return true;
             }
-            Console.WriteLine("NOOO");
             return false;
         }
         public virtual void DrawComponent(float thickness, bool makeWhite){Raylib.DrawText("NO",10,10,10,Color.Black);}
@@ -62,17 +58,22 @@ namespace GUIComponentSystem
                 Raylib.DrawText(label, (int)(Bounds.Position.X+Bounds.Width/2), (int)(Bounds.Position.Y+Bounds.Height/2), 10, ButtonColor);
             }
         }
-        public class ToggleButton(Rectangle bounds, string label, bool toggleValue) : Button(bounds, label)
+        public class ToggleButton(Rectangle bounds, string label) : Button(bounds, label)
         {
-            public bool ToggleValue = toggleValue;
-            public override bool MouseClicked(ClickFunction clickFunction)
+            private bool returnedToggle;
+            public virtual bool MouseClicked(ref bool toggleValue)
             {
-                ToggleValue = !ToggleValue; // flip the toggle value
-                return base.MouseClicked(clickFunction); // call the base function
+                if (base.MouseClicked()) // call the base function
+                {
+                    toggleValue = !toggleValue; // flip the toggle value
+                    returnedToggle = toggleValue;
+                    return true;
+                }
+                return false; 
             }
             public override void DrawComponent(float thickness, bool makeWhite = false)
             {
-                if (ToggleValue) ButtonColor = Color.DarkGray;
+                if (returnedToggle) ButtonColor = Color.DarkGray; 
                 base.DrawComponent(thickness, makeWhite); // call the base function from the Button
             }
         }

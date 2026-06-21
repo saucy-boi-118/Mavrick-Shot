@@ -132,6 +132,7 @@ class Program
         float dt;
 
         // Level Variables
+
         //Diffuculty levelDiffuculty = Diffuculty.Easy;
 
         // Player
@@ -145,6 +146,11 @@ class Program
         // Screen Bounds and other
         int padding = 25;
         Rectangle Screen = new(padding,padding,WINW-padding,WINH-padding);
+
+        // TESTING
+        Rectangle bounds = new(50,50,100,25);
+        bool LevelStart = false;
+        Component.ToggleButton toggleButton = new(bounds, "START LEVEL");
 
         while (!Raylib.WindowShouldClose())
         {
@@ -191,13 +197,21 @@ class Program
             c.Dest.Position = Raylib.GetMousePosition();
 
             // crosshair rotates naturally
-            c.Angle += c.Factor;
+            c.Angle += c.Factor*5;
 
             // ------------------------------------
             // Shooting
             // ------------------------------------
 
-            // drawing
+
+
+
+
+
+
+            // ------------------------------------
+            // Drawing
+            // ------------------------------------
             Raylib.BeginDrawing();
             Raylib.ClearBackground(Color.White);
 
@@ -208,7 +222,9 @@ class Program
             // Drawing the Crosshair
             Raylib.DrawTexturePro(c.CrossTex, c.Source, c.Dest, c.Origin, c.Angle, Color.White);
 
-            
+            if (toggleButton.MouseClicked(ref LevelStart)){/* Extra Logic */}
+            toggleButton.DrawComponent(5);
+            Raylib.DrawText(LevelStart+"", 15,15,15,Color.Black);
 
             Raylib.EndDrawing();
         }
