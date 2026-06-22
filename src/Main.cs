@@ -15,6 +15,8 @@ class Global // define global variables here
     public const float TO_DEGREE = 180 / MathF.PI; // conversion to degree multiplier
     public const float TO_RADIAN = MathF.PI / 180; // conversion to radian multiplier
     public static readonly Vector2 CENTER = new(WINW / 2, WINH / 2);
+    public static readonly Color FadedGray = new(76,67,71,100);
+    public static readonly Rectangle FullScreen = new(0,0,WINW,WINH);
 }
 
 class ImageFunctions
@@ -70,7 +72,7 @@ class Program
             Origin = GenerateOrigin(this.plane, scale);
         }
     }
-    public enum Diffuculty{ Easy, Medium, Hard }
+    protected enum Diffuculty{ Easy, Medium, Hard }
     struct Enemy
     {
         // Movement
@@ -131,10 +133,6 @@ class Program
         Raylib.SetTargetFPS(60);
         float dt;
 
-        // Level Variables
-
-        //Diffuculty levelDiffuculty = Diffuculty.Easy;
-
         // Player
         Player p = new(LoadTextureOutsideDirectory("assets/Player.png"), 7);
         ParticleSystem playerParticles = new(15);
@@ -147,86 +145,118 @@ class Program
         int padding = 25;
         Rectangle Screen = new(padding,padding,WINW-padding,WINH-padding);
 
-        // TESTING
-        Rectangle bounds = new(50,50,100,25);
-        bool LevelStart = false;
-        Component.ToggleButton toggleButton = new(bounds, "START LEVEL");
+        // Start Button
+        bool StartScreen = true;
+        Component.ToggleButton StartButton = new(new((WINW/2) - 100, WINH/2, 200, 50), "START", ref StartScreen);
+
+        // Difficulty Chooser
+        Diffuculty levelDiffuculty = Diffuculty.Easy;
+
+        // Buttons for choosing level
+        Component.Button EasyButton = new(new(100,100,200,50), "EASY");
+        Component.Button MediumButton = new(new(300,100,200,50), "MEDIUM");
+        Component.Button HardButton = new(new(500,100,200,50), "HARD");
+
+        // Gameover Button
+        bool GameOver = false;
+        Component.ToggleButton GameOverButton = new(new((WINW/2) - 100, WINH/2, 200, 50), "RESTART", ref StartScreen);
 
         while (!Raylib.WindowShouldClose())
         {
             dt = Raylib.GetFrameTime(); // delta time
 
-            // ------------------------------------
-            // PLAYER MOVEMENT
-            // ------------------------------------
-            if (Raylib.IsKeyDown(KeyboardKey.Left) || Raylib.IsKeyDown(KeyboardKey.A)) p.Angle -= 0.02f;
-            else if (Raylib.IsKeyDown(KeyboardKey.Right) || Raylib.IsKeyDown(KeyboardKey.D)) p.Angle += 0.02f;
+            if (StartScreen == true)
+            {
+                Raylib.BeginDrawing();
+                Raylib.ClearBackground(Color.White);
 
-            // Player accerlation
-            if (Raylib.IsKeyDown(KeyboardKey.Up) || Raylib.IsKeyDown(KeyboardKey.W)) {p.Accerlation += 0.25f;}
-            else if (Raylib.IsKeyDown(KeyboardKey.Down) || Raylib.IsKeyDown(KeyboardKey.S)) {p.Accerlation -= 0.25f;}
+                StartButton.UpdateComponent(ref StartScreen);
+                EasyButton.UpdateComponent(false, () => levelDiffuculty = Diffuculty.Easy);
+                MediumButton.UpdateComponent(false, () => levelDiffuculty = Diffuculty.Medium);
+                HardButton.UpdateComponent(false, () => levelDiffuculty = Diffuculty.Hard);
 
-            // Cap accerlation
-            p.Accerlation = Math.Clamp(p.Accerlation, 0, 1);
+                Raylib.DrawText(levelDiffuculty+"", 10,10,15,Color.Black);
 
-            // Cap Angle
-            if (p.Angle > FULL_CIRCLE) p.Angle = 0;
-            else if (p.Angle < 0) p.Angle = FULL_CIRCLE;
+                Raylib.EndDrawing();
+            }
+            else
+            {
+                // if the game is still on
+                if (GameOver == false)
+                {
+                    // ------------------------------------
+                    // PLAYER MOVEMENT
+                    // ------------------------------------
+                    if (Raylib.IsKeyDown(KeyboardKey.Left) || Raylib.IsKeyDown(KeyboardKey.A)) p.Angle -= 0.02f;
+                    else if (Raylib.IsKeyDown(KeyboardKey.Right) || Raylib.IsKeyDown(KeyboardKey.D)) p.Angle += 0.02f;
 
-            // Set Direction
-            p.Direction.X = MathF.Cos(p.Angle);
-            p.Direction.Y = MathF.Sin(p.Angle);
+                    // Player accerlation
+                    if (Raylib.IsKeyDown(KeyboardKey.Up) || Raylib.IsKeyDown(KeyboardKey.W)) {p.Accerlation += 0.25f;}
+                    else if (Raylib.IsKeyDown(KeyboardKey.Down) || Raylib.IsKeyDown(KeyboardKey.S)) {p.Accerlation -= 0.25f;}
 
-            // Set position and velocity
-            p.Velocity += p.Direction * (p.Speed*p.Accerlation) * dt;
-            p.Velocity *= 0.99f; // reduce velocity just a litte
-            p.Position += p.Velocity * dt;
-            p.Dest.Position = p.Position;
+                    // Cap accerlation
+                    p.Accerlation = Math.Clamp(p.Accerlation, 0, 1);
 
-            // Cap bounds
-            if (!Raylib.CheckCollisionCircleRec(p.Position, 10, Screen)) p.Velocity *= 0;
+                    // Cap Angle
+                    if (p.Angle > FULL_CIRCLE) p.Angle = 0;
+                    else if (p.Angle < 0) p.Angle = FULL_CIRCLE;
 
-            // ------------------------------------
-            // Crosshair -> rotates in degrees
-            // ------------------------------------
-            c.Angle += (Raylib.GetMouseDelta().X+Raylib.GetMouseDelta().Y) * mouseSensitivity;
-            if (c.Angle > 360) {c.Angle = 0; c.Factor = 1;}
-            else if (c.Angle < 0) {c.Angle = 360; c.Factor = -1;}
+                    // Set Direction
+                    p.Direction.X = MathF.Cos(p.Angle);
+                    p.Direction.Y = MathF.Sin(p.Angle);
 
-            // moves with the mouse
-            c.Dest.Position = Raylib.GetMousePosition();
+                    // Set position and velocity
+                    p.Velocity += p.Direction * (p.Speed*p.Accerlation) * dt;
+                    p.Velocity *= 0.99f; // reduce velocity just a litte
+                    p.Position += p.Velocity * dt;
+                    p.Dest.Position = p.Position;
 
-            // crosshair rotates naturally
-            c.Angle += c.Factor*5;
+                    // Cap bounds
+                    if (!Raylib.CheckCollisionCircleRec(p.Position, 10, Screen)) p.Velocity *= -1;
 
-            // ------------------------------------
-            // Shooting
-            // ------------------------------------
+                    // ------------------------------------
+                    // Crosshair -> rotates in degrees
+                    // ------------------------------------
+                    c.Angle += (Raylib.GetMouseDelta().X+Raylib.GetMouseDelta().Y) * mouseSensitivity;
+                    if (c.Angle > 360) {c.Angle = 0; c.Factor = 1;}
+                    else if (c.Angle < 0) {c.Angle = 360; c.Factor = -1;}
 
+                    // moves with the mouse
+                    c.Dest.Position = Raylib.GetMousePosition();
 
+                    // crosshair rotates naturally
+                    c.Angle += c.Factor*5;
 
+                    // ------------------------------------
+                    // Shooting
+                    // ------------------------------------
 
+                    
+                }
+                    
+                // ------------------------------------
+                // Drawing / GAME OVER DESIGN
+                // ------------------------------------
+                Raylib.BeginDrawing();
+                Raylib.ClearBackground(Color.White);
 
+                // Drawing the player
+                playerParticles.UpdateParticleSmokeSquare(p.Position, p.Direction*-1, 15, dt, 65); 
+                Raylib.DrawTexturePro(p.plane, p.Source, p.Dest, p.Origin, (p.Angle * TO_DEGREE) + 90, Color.White);
+                    
+                // Drawing the Crosshair
+                Raylib.DrawTexturePro(c.CrossTex, c.Source, c.Dest, c.Origin, c.Angle, Color.White);
+                Raylib.DrawText(GameOver+"", 15,15,25,Color.Black);
 
+                // In Case of Gameover 
+                if (GameOver == true)
+                {
+                    Raylib.DrawRectangleRec(FullScreen, FadedGray);
+                    GameOverButton.UpdateComponent(ref GameOver);   
+                }
 
-            // ------------------------------------
-            // Drawing
-            // ------------------------------------
-            Raylib.BeginDrawing();
-            Raylib.ClearBackground(Color.White);
-
-            // Drawing the player
-            playerParticles.UpdateParticleSmokeSquare(p.Position, p.Direction*-1, 15, dt, 65); 
-            Raylib.DrawTexturePro(p.plane, p.Source, p.Dest, p.Origin, (p.Angle * TO_DEGREE) + 90, Color.White);
-            
-            // Drawing the Crosshair
-            Raylib.DrawTexturePro(c.CrossTex, c.Source, c.Dest, c.Origin, c.Angle, Color.White);
-
-            if (toggleButton.MouseClicked(ref LevelStart)){/* Extra Logic */}
-            toggleButton.DrawComponent(5);
-            Raylib.DrawText(LevelStart+"", 15,15,15,Color.Black);
-
-            Raylib.EndDrawing();
+                Raylib.EndDrawing();
+            }
         }
 
         // closing and unloading assets

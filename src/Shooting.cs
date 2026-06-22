@@ -3,11 +3,11 @@ using System.Numerics;
 
 namespace Shooting
 {
-    class Gun(int MaxBullets)
+    class Gun//(int MaxBullets)
     {
         // Possible Upgrades
         public bool toggleMultiShootUpgrade=false, toggleSpeedUpgrade=false, toggleRangeUpgrade=false;
-        private float MaxRange = 1000; // 100 away
+        //private float MaxRange = 1000; // 100 away
         // Individual bullet
         struct Bullet(Vector2 pos, Vector2 dir) // its AoS, sue me
         {
@@ -18,6 +18,6 @@ namespace Shooting
         }
         
         // Bullet list
-        Bullet[] bs = new Bullet[MaxBullets]; // set number of bullets
+        //Bullet[] bs = new Bullet[MaxBullets]; // set number of bullets
     }   
 }
