@@ -2,6 +2,7 @@
 using System.Numerics;
 using Raylib_cs;
 using Particles;
+using EnemyShooting;
 using GUIComponentSystem;
 using static Global;
 using static ImageFunctions;
@@ -141,6 +142,12 @@ class Program
         Crosshair c = new(LoadTextureOutsideDirectory("assets/Crosshair.png"), 7);
         float mouseSensitivity = 0.7f;
 
+        // Gun / shooting
+        Gun g = new(20);
+
+        // Enemy Spawning
+
+
         // Screen Bounds and other
         int padding = 25;
         Rectangle Screen = new(padding,padding,WINW-padding,WINH-padding);
@@ -175,7 +182,7 @@ class Program
                 MediumButton.UpdateComponent(false, () => levelDiffuculty = Diffuculty.Medium);
                 HardButton.UpdateComponent(false, () => levelDiffuculty = Diffuculty.Hard);
 
-                Raylib.DrawText(levelDiffuculty+"", 10,10,15,Color.Black);
+                Raylib.DrawText(levelDiffuculty+"", 10,10,25,Color.Black);
 
                 Raylib.EndDrawing();
             }
@@ -230,7 +237,7 @@ class Program
                     // ------------------------------------
                     // Shooting
                     // ------------------------------------
-
+                    if (Raylib.IsMouseButtonPressed(MouseButton.Left)) {g.OverwriteBullet(p.Position);}
                     
                 }
                     
@@ -248,13 +255,15 @@ class Program
                 Raylib.DrawTexturePro(c.CrossTex, c.Source, c.Dest, c.Origin, c.Angle, Color.White);
                 Raylib.DrawText(GameOver+"", 15,15,25,Color.Black);
 
+                // updating bullets
+                g.UpdateBullets(dt);
+
                 // In Case of Gameover 
                 if (GameOver == true)
                 {
                     Raylib.DrawRectangleRec(FullScreen, FadedGray);
                     GameOverButton.UpdateComponent(ref GameOver);   
                 }
-
                 Raylib.EndDrawing();
             }
         }
