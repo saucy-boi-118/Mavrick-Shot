@@ -1,4 +1,5 @@
 using Raylib_cs;
+using Main;
 using System.Numerics;
 
 namespace EnemyShooting
@@ -74,5 +75,89 @@ namespace EnemyShooting
         }
 
 
+    }
+
+    class Enemies(int MaxEnemies)
+    {
+        private static readonly Random r = new(0118);
+        private readonly int MaxAttack = 150*150;
+        private int EnemyIndex = 0;
+        protected struct Enemy
+        {
+            public Vector2 Position, Direction;
+            public float DistanceOrigin, Speed, Accel, Angle;
+        }
+
+        public void DefineEnemies()
+        {
+            for (int i = 0; i < MaxEnemies; i++)
+            {
+                es[i].Position = RandomVector();
+                es[i].Speed = (100*r.NextSingle());
+            }
+        }
+        protected Enemy[] es = new Enemy[MaxEnemies]; // set number of enemies
+        public void OverwriteEnemy()
+        {
+            // CHANGE BASED ON UPGRADES
+
+            if (EnemyIndex < MaxEnemies)
+            {
+                // Overwrite a bullet 
+                es[EnemyIndex].Position = RandomVector(); // new position
+                es[EnemyIndex].Speed = (450*r.NextSingle()) + 250; // new speed
+                es[EnemyIndex].Angle = 0; // reset angle
+
+                // increase counter
+                EnemyIndex++;  
+            }
+            else {EnemyIndex = 0;} 
+            
+        }
+
+        public void UpdateEnemies(Texture2D EnemyTexture, Rectangle Source, Rectangle Dest, Vector2 Origin, Vector2 OtherOrigin, float dt)
+        {
+            for (int i = 0; i < MaxEnemies; i++)
+            {
+                // Updating Direction and Angle
+                es[i].Direction = Vector2.Normalize(OtherOrigin - es[i].Position);
+                es[i].Angle = MathF.Atan2(es[i].Direction.Y, es[i].Direction.X); // using the atan 2 function
+
+                // Updating Position
+                es[i].Position += es[i].Direction * (es[i].Speed + es[i].Accel) * dt;
+
+                // Capping Angle
+                if (es[i].Angle < 0) {es[i].Angle = Main.Global.FULL_CIRCLE;}
+                else if (es[i].Angle > Main.Global.FULL_CIRCLE) {es[i].Angle = 0;}
+
+                // Updating distance
+                es[i].DistanceOrigin = Vector2.DistanceSquared(es[i].Position, OtherOrigin);
+
+                // Distance checking
+                if (es[i].DistanceOrigin > MaxAttack)
+                {
+                    es[i].Speed = 0;
+                    es[i].Accel += 0.1f;
+                }
+                else {es[i].Speed = (450*r.NextSingle()) + 250;}
+
+                // Decrease accel
+                es[i].Accel -= 0.5f;
+
+                // clamp accelearation
+                es[i].Accel = Math.Clamp(es[i].Accel, 0, 45);
+                
+                
+                // Drawing Enemy
+                Raylib.DrawPoly(es[i].Position, 6, 20, es[i].Angle, Color.Red);
+                Raylib.DrawPolyLinesEx(es[i].Position, 6, 35, es[i].Angle, 5, Color.Black);
+                //Raylib.DrawTexturePro(EnemyTexture, Source, Dest, Origin, es[i].Angle, Color.White);
+            }
+        }
+
+        public static Vector2 RandomVector()
+        {
+            return new(Raylib.GetRandomValue(-50,Main.Global.WINW+50),Raylib.GetRandomValue(-50,Main.Global.WINH+50));
+        }
     }   
 }
