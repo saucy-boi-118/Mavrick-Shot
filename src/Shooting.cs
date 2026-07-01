@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace EnemyShooting
 {
-    class Gun(int MaxBullets, Enemies e)
+    class Gun(int MaxBullets)
     {
         // Possible Upgrades
         // MAKE AN ENUM FOR UPGRADES
