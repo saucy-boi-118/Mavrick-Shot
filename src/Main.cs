@@ -6,6 +6,7 @@ using EnemyShooting;
 using GUIComponentSystem;
 using static Main.Global;
 using static Main.ImageFunctions;
+using static Quadtree;
 
 namespace Main
 {
@@ -21,7 +22,6 @@ namespace Main
         public static readonly Color FadedGray = new(76,67,71,100);
         public static readonly Rectangle FullScreen = new(0,0,WINW,WINH);
     }
-
     class ImageFunctions
     {
         private static string combinedPath = "";
@@ -75,52 +75,7 @@ namespace Main
                 Origin = GenerateOrigin(this.plane, scale);
             }
         }
-        protected enum Diffuculty{ Easy, Medium, Hard }
-        struct Enemy
-        {
-            // Movement
-            public Vector2 Position, Direction, Velocity, Origin; 
-            public float Speed, Width, Height, Angle=0;
-
-            // Visuals
-            public Texture2D enemy;
-            public Rectangle Source, Dest;
-            public Enemy(Texture2D texture, int scale, Vector2 position, Vector2 direction, Diffuculty diffuculty)
-            {
-                // Setting up direction and position
-                Position = position;
-                Direction = direction;
-                Velocity = Vector2.Zero;
-
-                // Visuals
-                // visual setup
-                enemy = texture;
-                Width = this.enemy.Width;
-                Height = this.enemy.Height;
-
-                // Source and Dest Rectangles
-                Source = GenerateSource(this.enemy);
-                Dest = GenerateDest(this.enemy, scale);
-                Origin = GenerateOrigin(this.enemy, scale);
-
-                // Setting the Speed
-                switch(diffuculty)
-                {
-                    case Diffuculty.Easy:
-                    Speed = 150;
-                    break;
-
-                    case Diffuculty.Medium:
-                    Speed = 250;
-                    break;
-
-                    case Diffuculty.Hard:
-                    Speed = 350;
-                    break;
-                }
-            }
-
-        }
+        protected enum Diffuculty{ Easy, Medium, Hard } // IMPLEMENT THIS
         struct Crosshair(Texture2D texture, int scale)
         {
             public Texture2D CrossTex = texture;
@@ -129,6 +84,9 @@ namespace Main
             public float Angle = 0;
             public int Factor = 1;
         }
+
+        // COLLISIONS
+        public static Quadtree qt = new(new(0,0,WINW,WINH));
         public static void Main()
         {
             // Initialization
@@ -154,7 +112,6 @@ namespace Main
             Vector2 EOrigin = GenerateOrigin(enemyTexture,7);
             Enemies e = new(20);
             e.DefineEnemies();
-            
 
             // Screen Bounds and other
             int padding = 25;
@@ -199,6 +156,7 @@ namespace Main
                     // if the game is still on
                     if (GameOver == false)
                     {
+                        qt.Clear(); // clear quadtree every game loop
                         // ------------------------------------
                         // PLAYER MOVEMENT
                         // ------------------------------------
@@ -282,6 +240,7 @@ namespace Main
             // closing and unloading assets
             Raylib.UnloadTexture(p.plane);
             Raylib.UnloadTexture(c.CrossTex);
+            Raylib.UnloadTexture(enemyTexture);
             Raylib.CloseWindow();
         }
     }
